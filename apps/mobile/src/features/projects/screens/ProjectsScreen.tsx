@@ -1,80 +1,107 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useProjects } from '../api/useProjects';
 import { Project } from '../../../types';
-import { FolderGit2, Plus } from 'lucide-react-native';
+import { FolderGit2, Plus, ChevronRight, LayoutList } from 'lucide-react-native';
 
 export function ProjectsScreen() {
   const navigation = useNavigation<any>();
   const [page, setPage] = useState(1);
   const { data, isLoading, isError, refetch, isRefetching } = useProjects(page, 20);
 
-  const renderItem = ({ item }: { item: Project }) => (
-    <View className="bg-white p-4 rounded-xl shadow-sm mb-3 border border-gray-100 flex-row items-center">
-      <View className="bg-blue-50 p-3 rounded-full mr-4">
-        <FolderGit2 color="#2563eb" size={24} />
-      </View>
-      <View className="flex-1">
-        <Text className="text-lg font-semibold text-gray-900">{item.name}</Text>
-        <Text className="text-gray-500 text-sm mt-1" numberOfLines={1}>
-          {item.description || 'No description'}
-        </Text>
-      </View>
-      <View className="ml-2">
-        <View className={`px-2 py-1 rounded-md ${
-          item.status === 'COMPLETED' ? 'bg-green-100' :
-          item.status === 'IN_PROGRESS' ? 'bg-blue-100' : 'bg-gray-100'
-        }`}>
-          <Text className={`text-xs font-medium ${
-            item.status === 'COMPLETED' ? 'text-green-700' :
-            item.status === 'IN_PROGRESS' ? 'text-blue-700' : 'text-gray-700'
-          }`}>
-            {item.status.replace('_', ' ')}
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'COMPLETED': return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' };
+      case 'IN_PROGRESS': return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100' };
+      default: return { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' };
+    }
+  };
+
+  const renderItem = ({ item }: { item: Project }) => {
+    const statusColors = getStatusColor(item.status);
+    
+    return (
+      <View 
+        className="bg-white p-5 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-row items-center"
+      >
+        <View className="bg-indigo-50/50 p-3.5 rounded-xl border border-indigo-100 mr-4">
+          <FolderGit2 color="#4F46E5" size={24} />
+        </View>
+        <View className="flex-1">
+          <Text className="text-lg font-bold text-gray-900 mb-1">{item.name}</Text>
+          <Text className="text-gray-500 text-sm" numberOfLines={1}>
+            {item.description || 'No description provided'}
           </Text>
+          <View className="flex-row items-center mt-3">
+            <View className={`px-2.5 py-1 rounded-md border ${statusColors.bg} ${statusColors.border}`}>
+              <Text className={`text-xs font-semibold ${statusColors.text}`}>
+                {item.status.replace('_', ' ')}
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
-    </View>
-  );
-
-  if (isLoading && !data) {
-    return (
-      <View className="flex-1 items-center justify-center bg-gray-50">
-        <ActivityIndicator size="large" color="#2563eb" />
-      </View>
     );
-  }
-
-  if (isError) {
-    return (
-      <View className="flex-1 items-center justify-center bg-gray-50 p-6">
-        <Text className="text-red-500 text-lg text-center">Failed to load projects. Pull to refresh.</Text>
-      </View>
-    );
-  }
+  };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+      <View className="px-6 py-4 bg-white border-b border-gray-100 shadow-sm flex-row justify-between items-center z-10">
+        <View>
+          <Text className="text-2xl font-bold text-gray-900">Projects</Text>
+          <Text className="text-sm text-gray-500 font-medium">Manage your workspaces</Text>
+        </View>
+      </View>
+
       <FlatList
         data={data?.data || []}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
         ListEmptyComponent={
-          <View className="items-center justify-center py-10">
-            <Text className="text-gray-500">No projects found.</Text>
-          </View>
+          isLoading && !data ? (
+            <View className="py-20 items-center">
+              <ActivityIndicator size="large" color="#0F172A" />
+            </View>
+          ) : isError ? (
+            <View className="py-20 items-center">
+              <Text className="text-red-500 text-base font-medium mb-2">Failed to load projects</Text>
+              <TouchableOpacity onPress={() => refetch()} className="bg-red-50 px-4 py-2 rounded-lg border border-red-100">
+                <Text className="text-red-600 font-semibold">Try Again</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View className="items-center justify-center py-20 px-6">
+              <View className="bg-gray-100 w-20 h-20 rounded-full items-center justify-center mb-6">
+                <LayoutList size={32} color="#94A3B8" />
+              </View>
+              <Text className="text-xl font-bold text-gray-900 mb-2">No projects yet</Text>
+              <Text className="text-gray-500 text-center mb-8">Create your first project to start organizing tasks and collaborating.</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('CreateProject')}
+                className="bg-indigo-600 px-6 py-3 rounded-xl flex-row items-center"
+              >
+                <Plus color="white" size={20} className="mr-2" />
+                <Text className="text-white font-semibold text-base">Create Project</Text>
+              </TouchableOpacity>
+            </View>
+          )
         }
       />
-      <TouchableOpacity
-        onPress={() => navigation.navigate('CreateProject')}
-        className="absolute bottom-6 right-6 bg-blue-600 w-14 h-14 rounded-full items-center justify-center shadow-lg"
-      >
-        <Plus color="white" size={28} />
-      </TouchableOpacity>
-    </View>
+
+      {data?.data && data.data.length > 0 && (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('CreateProject')}
+          className="absolute bottom-8 right-6 bg-indigo-600 w-14 h-14 rounded-full items-center justify-center shadow-xl shadow-indigo-600/30"
+          activeOpacity={0.8}
+        >
+          <Plus color="white" size={28} />
+        </TouchableOpacity>
+      )}
+    </SafeAreaView>
   );
 }

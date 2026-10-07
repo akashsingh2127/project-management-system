@@ -27,9 +27,23 @@ function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: true,
-        tabBarActiveTintColor: '#2563eb', // blue-600
-        tabBarInactiveTintColor: '#6b7280', // gray-500
+        headerShown: false,
+        tabBarActiveTintColor: '#4F46E5', // indigo-600
+        tabBarInactiveTintColor: '#94A3B8', // slate-400
+        tabBarStyle: {
+          backgroundColor: '#ffffff',
+          borderTopColor: '#f1f5f9', // slate-100
+          borderTopWidth: 1,
+          elevation: 0,
+          shadowOpacity: 0,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        }
       }}
     >
       <Tab.Screen
