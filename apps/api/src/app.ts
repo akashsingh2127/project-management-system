@@ -5,6 +5,7 @@ import pinoHttp from 'pino-http';
 import { logger } from './utils/logger';
 import { requestIdMiddleware } from './middlewares/requestId';
 import { errorHandler } from './middlewares/errorHandler';
+import { routes } from './routes';
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.get('/ready', (req, res) => {
 });
 
 // Centralized Error Handling
+app.use('/api', routes);
 app.use(errorHandler);
 
 export { app };
