@@ -18,9 +18,9 @@ describe('Task Authorization', () => {
 
   beforeAll(async () => {
     // Clean up
-    await prisma.task.deleteMany();
-    await prisma.project.deleteMany();
-    await prisma.user.deleteMany();
+    await prisma.user.deleteMany({
+      where: { auth0Subject: { in: ['auth0|userA-task', 'auth0|userB-task'] } }
+    });
 
     userA = await prisma.user.create({
       data: { auth0Subject: 'auth0|userA-task', email: 'atask@test.com', fullName: 'User A Task' }
@@ -46,6 +46,9 @@ describe('Task Authorization', () => {
   });
 
   afterAll(async () => {
+    await prisma.user.deleteMany({
+      where: { auth0Subject: { in: ['auth0|userA-task', 'auth0|userB-task'] } }
+    });
     await prisma.$disconnect();
   });
 

@@ -21,9 +21,7 @@
       "package": "com.projectmanagement.mobile",
       "predictiveBackGestureEnabled": false
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
+    "platforms": ["ios", "android"],
     "plugins": [
       [
         "react-native-auth0",
