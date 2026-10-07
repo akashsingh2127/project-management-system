@@ -1,0 +1,9 @@
+import { z } from 'zod';
+
+export const HealthCheckResponseSchema = z.object({
+  status: z.string(),
+  uptime: z.number(),
+  timestamp: z.string()
+});
+
+export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
