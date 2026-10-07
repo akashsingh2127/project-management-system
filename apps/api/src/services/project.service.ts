@@ -16,8 +16,8 @@ export class ProjectService {
     await CacheService.del(CacheKeys.dashboard(userId));
   }
 
-  static async getProjects(userId: string, filters?: { name?: string; status?: string }) {
-    const queryParamsStr = JSON.stringify(filters || {});
+  static async getProjects(userId: string, filters?: { name?: string; status?: string }, pagination?: { page: number; limit: number }) {
+    const queryParamsStr = JSON.stringify({ ...filters, ...pagination });
     const cacheKey = CacheKeys.userProjects(userId, queryParamsStr);
 
     const cached = await CacheService.get<any>(cacheKey);
@@ -33,13 +33,22 @@ export class ProjectService {
       where.status = filters.status;
     }
 
-    const projects = await prisma.project.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-    });
+    const skip = pagination ? (pagination.page - 1) * pagination.limit : undefined;
+    const take = pagination ? pagination.limit : undefined;
 
-    await CacheService.set(cacheKey, projects, 300);
-    return projects;
+    const [projects, total] = await Promise.all([
+      prisma.project.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      prisma.project.count({ where })
+    ]);
+
+    const result = { projects, total };
+    await CacheService.set(cacheKey, result, 300);
+    return result;
   }
 
   static async getProjectById(userId: string, projectId: string) {

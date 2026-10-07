@@ -20,13 +20,22 @@ export default function Projects() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
 
-  const { data: projects, isLoading, error } = useQuery<Project[]>({
-    queryKey: ['projects'],
+  const [page, setPage] = useState(1);
+  const limit = 6;
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['projects', { page, limit }],
     queryFn: async () => {
-      const res = await api.get('/projects');
-      return res.data.data;
+      const res = await api.get(`/projects?page=${page}&limit=${limit}`);
+      return {
+        projects: res.data.data as Project[],
+        meta: res.data.meta as { total: number; page: number; limit: number; totalPages: number }
+      };
     }
   });
+
+  const projects = data?.projects;
+  const meta = data?.meta;
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this project?')) return;
@@ -121,6 +130,28 @@ export default function Projects() {
           </div>
         )}
       </div>
+
+      {meta && meta.totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-4 mt-8">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+          >
+            Previous
+          </button>
+          <span className="text-gray-600">
+            Page {meta.page} of {meta.totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
+            disabled={page === meta.totalPages}
+            className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       <ProjectModal 
         isOpen={isModalOpen} 

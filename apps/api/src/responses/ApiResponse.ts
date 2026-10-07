@@ -1,9 +1,10 @@
 export class ApiResponse {
-  static success<T>(data: T, message?: string) {
+  static success<T>(data: T, message?: string, meta?: any) {
     return {
       success: true,
       message,
       data,
+      meta,
     };
   }
 

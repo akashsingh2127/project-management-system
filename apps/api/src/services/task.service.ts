@@ -17,8 +17,8 @@ export class TaskService {
     await CacheService.del(CacheKeys.dashboard(userId));
   }
 
-  static async getTasks(userId: string, filters?: { name?: string; status?: string; priority?: string; projectId?: string }) {
-    const queryParamsStr = JSON.stringify(filters || {});
+  static async getTasks(userId: string, filters?: { name?: string; status?: string; priority?: string; projectId?: string }, pagination?: { page: number; limit: number }) {
+    const queryParamsStr = JSON.stringify({ ...filters, ...pagination });
     const cacheKey = CacheKeys.userTasks(userId, queryParamsStr);
 
     const cached = await CacheService.get<any>(cacheKey);
@@ -44,18 +44,27 @@ export class TaskService {
       where.projectId = filters.projectId;
     }
 
-    const tasks = await prisma.task.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        project: {
-          select: { id: true, name: true }
-        }
-      }
-    });
+    const skip = pagination ? (pagination.page - 1) * pagination.limit : undefined;
+    const take = pagination ? pagination.limit : undefined;
 
-    await CacheService.set(cacheKey, tasks, 300); // 5 mins
-    return tasks;
+    const [tasks, total] = await Promise.all([
+      prisma.task.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          project: {
+            select: { id: true, name: true }
+          }
+        },
+        skip,
+        take,
+      }),
+      prisma.task.count({ where })
+    ]);
+
+    const result = { tasks, total };
+    await CacheService.set(cacheKey, result, 300); // 5 mins
+    return result;
   }
 
   static async getTaskById(userId: string, taskId: string) {

@@ -6,9 +6,9 @@ import { TaskModal } from '../components/TaskModal';
 
 export interface Task {
   id: string;
-  title: string;
+  name: string;
   description: string | null;
-  status: 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'COMPLETED';
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   projectId: string;
   dueDate: string | null;
@@ -23,13 +23,22 @@ export default function Tasks() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  const { data: tasks, isLoading, error } = useQuery<Task[]>({
-    queryKey: ['tasks'],
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['tasks', { page, limit }],
     queryFn: async () => {
-      const res = await api.get('/tasks');
-      return res.data.data;
+      const res = await api.get(`/tasks?page=${page}&limit=${limit}`);
+      return {
+        tasks: res.data.data as Task[],
+        meta: res.data.meta as { total: number; page: number; limit: number; totalPages: number }
+      };
     }
   });
+
+  const tasks = data?.tasks;
+  const meta = data?.meta;
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this task?')) return;
@@ -47,7 +56,7 @@ export default function Tasks() {
   if (error) return <div>Failed to load tasks</div>;
 
   const filteredTasks = tasks?.filter((task) => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = task.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || task.status === statusFilter;
     const matchesPriority = priorityFilter === 'ALL' || task.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
@@ -84,9 +93,8 @@ export default function Tasks() {
           onChange={(e) => setStatusFilter(e.target.value)}
         >
           <option value="ALL">All Statuses</option>
-          <option value="TODO">To Do</option>
+          <option value="PENDING">Pending</option>
           <option value="IN_PROGRESS">In Progress</option>
-          <option value="IN_REVIEW">In Review</option>
           <option value="COMPLETED">Completed</option>
         </select>
         <select
@@ -117,7 +125,7 @@ export default function Tasks() {
             {filteredTasks?.map(task => (
               <tr key={task.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 font-medium text-gray-900">
-                  {task.title}
+                  {task.name}
                   {task.description && <p className="text-xs text-gray-500 font-normal line-clamp-1 mt-1">{task.description}</p>}
                 </td>
                 <td className="px-6 py-4">
@@ -164,6 +172,28 @@ export default function Tasks() {
           </tbody>
         </table>
       </div>
+
+      {meta && meta.totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-4 mt-6">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+          >
+            Previous
+          </button>
+          <span className="text-gray-600">
+            Page {meta.page} of {meta.totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
+            disabled={page === meta.totalPages}
+            className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       <TaskModal 
         isOpen={isModalOpen} 

@@ -7,12 +7,23 @@ export class ProjectController {
   static async getProjects(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user!.id;
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+      
       const filters = {
         name: req.query.name as string | undefined,
         status: req.query.status as string | undefined,
       };
-      const projects = await ProjectService.getProjects(userId, filters);
-      res.json(ApiResponse.success(projects));
+      
+      const { projects, total } = await ProjectService.getProjects(userId, filters, { page, limit });
+      
+      const totalPages = Math.ceil(total / limit);
+      res.json(ApiResponse.success(projects, undefined, {
+        total,
+        page,
+        limit,
+        totalPages,
+      }));
     } catch (error) {
       next(error);
     }

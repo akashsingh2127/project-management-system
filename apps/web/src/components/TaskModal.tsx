@@ -1,8 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import { createTaskSchema, updateTaskSchema } from '@project-management/common';
+import { z } from 'zod';
+import api from '../api/client';
 import { Task } from '../pages/Tasks';
 import { Project } from '../pages/Projects';
-import api from '../api/client';
-import { useQueryClient, useQuery } from '@tanstack/react-query';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -10,15 +37,10 @@ interface TaskModalProps {
   task?: Task | null;
 }
 
+type TaskFormValues = z.infer<typeof createTaskSchema>;
+
 export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
   const queryClient = useQueryClient();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState<'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'COMPLETED'>('TODO');
-  const [priority, setPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH'>('MEDIUM');
-  const [projectId, setProjectId] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: projects } = useQuery<Project[]>({
     queryKey: ['projects'],
@@ -28,152 +50,193 @@ export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
     }
   });
 
+  const form = useForm<TaskFormValues>({
+    resolver: zodResolver(task ? updateTaskSchema : createTaskSchema) as any,
+    defaultValues: {
+      name: '',
+      description: '',
+      status: 'PENDING',
+      priority: 'MEDIUM',
+      projectId: '',
+      dueDate: null as unknown as Date,
+    },
+  });
+
   useEffect(() => {
-    if (task) {
-      setTitle(task.title);
-      setDescription(task.description || ''); // Wait, Task model doesn't have description in the interface? I'll just pass it anyway or omit it. Actually backend has it.
-      setStatus(task.status);
-      setPriority(task.priority);
-      setProjectId(task.projectId);
-      setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
-    } else {
-      setTitle('');
-      setDescription('');
-      setStatus('TODO');
-      setPriority('MEDIUM');
-      setProjectId(projects && projects.length > 0 ? projects[0].id : '');
-      setDueDate('');
+    if (task && isOpen) {
+      form.reset({
+        name: task.name,
+        description: task.description || '',
+        status: task.status,
+        priority: task.priority,
+        projectId: task.projectId,
+        dueDate: task.dueDate ? new Date(task.dueDate) : null as unknown as Date,
+      });
+    } else if (!task && isOpen) {
+      form.reset({
+        name: '',
+        description: '',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        projectId: projects && projects.length > 0 ? projects[0].id : '',
+        dueDate: null as unknown as Date,
+      });
     }
-  }, [task, isOpen, projects]);
+  }, [task, isOpen, projects, form]);
 
-  if (!isOpen) return null;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!projectId) {
-      alert("Please select a project.");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const payload = {
-        title,
-        description,
-        status,
-        priority,
-        projectId,
-        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-      };
-
+  const mutation = useMutation({
+    mutationFn: async (data: TaskFormValues) => {
       if (task) {
-        await api.put(`/tasks/${task.id}`, payload);
+        return await api.put(`/tasks/${task.id}`, data);
       } else {
-        await api.post('/tasks', payload);
+        return await api.post('/tasks', data);
       }
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       onClose();
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error(error);
       alert('Failed to save task');
-    } finally {
-      setIsSubmitting(false);
-    }
+    },
+  });
+
+  const onSubmit = (data: TaskFormValues) => {
+    mutation.mutate(data);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">{task ? 'Edit Task' : 'New Task'}</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{task ? 'Edit Task' : 'New Task'}</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Task Name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              rows={3}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Task Description" {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
-            <select
-              required
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="" disabled>Select a project</option>
-              {projects?.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="TODO">To Do</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="IN_REVIEW">In Review</option>
-                <option value="COMPLETED">Completed</option>
-              </select>
+            <FormField
+              control={form.control}
+              name="projectId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={!!task}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a project" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {projects?.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                        <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                        <SelectItem value="COMPLETED">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Priority</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a priority" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="LOW">Low</SelectItem>
+                        <SelectItem value="MEDIUM">Medium</SelectItem>
+                        <SelectItem value="HIGH">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as any)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Due Date</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="date" 
+                      onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)} 
+                      value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          
-          <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {isSubmitting ? 'Saving...' : 'Save'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }
