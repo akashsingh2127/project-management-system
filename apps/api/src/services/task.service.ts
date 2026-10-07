@@ -1,6 +1,6 @@
 import { prisma } from '../config/database';
 import { CreateTaskDto, UpdateTaskDto } from '@project-management/common';
-import { NotFoundError, ForbiddenError } from '../utils/errors';
+import { NotFoundError } from '../utils/errors';
 
 export class TaskService {
   static async getTasks(userId: string) {
@@ -39,7 +39,7 @@ export class TaskService {
     });
 
     if (!project) {
-      throw new ForbiddenError('Project does not exist or you do not have access');
+      throw new NotFoundError('Project not found');
     }
 
     return prisma.task.create({

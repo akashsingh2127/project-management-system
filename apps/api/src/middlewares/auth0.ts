@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { checkJwt } from '../config/auth0';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
-import { env } from '../config/env';
 
 const attachUser = async (req: Request, res: Response, next: NextFunction) => {
   try {

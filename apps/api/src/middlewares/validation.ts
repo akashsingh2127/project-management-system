@@ -31,3 +31,18 @@ export const validateQuery = (schema: ZodSchema) => {
     }
   };
 };
+
+export const validateParams = (schema: ZodSchema) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      req.params = schema.parse(req.params);
+      next();
+    } catch (error) {
+      if (error instanceof ZodError) {
+        next(new ValidationError('Invalid route parameters', error.errors));
+      } else {
+        next(error);
+      }
+    }
+  };
+};

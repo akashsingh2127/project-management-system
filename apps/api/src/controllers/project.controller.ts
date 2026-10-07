@@ -7,7 +7,11 @@ export class ProjectController {
   static async getProjects(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user!.id;
-      const projects = await ProjectService.getProjects(userId);
+      const filters = {
+        name: req.query.name as string | undefined,
+        status: req.query.status as string | undefined,
+      };
+      const projects = await ProjectService.getProjects(userId, filters);
       res.json(ApiResponse.success(projects));
     } catch (error) {
       next(error);

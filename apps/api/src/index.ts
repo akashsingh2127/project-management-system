@@ -4,9 +4,12 @@ dotenv.config();
 import { app } from './app';
 import { logger } from './utils/logger';
 
+import { connectRedis } from './config/redis';
+
 const port = process.env.PORT || 3000;
 
-const server = app.listen(port, () => {
+const server = app.listen(port, async () => {
+  await connectRedis();
   logger.info(`Server is running on port ${port}`);
 });
 

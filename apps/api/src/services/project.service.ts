@@ -3,9 +3,19 @@ import { CreateProjectDto, UpdateProjectDto } from '@project-management/common';
 import { NotFoundError } from '../utils/errors';
 
 export class ProjectService {
-  static async getProjects(userId: string) {
+  static async getProjects(userId: string, filters?: { name?: string; status?: string }) {
+    const where: any = { userId };
+    
+    if (filters?.name) {
+      where.name = { contains: filters.name, mode: 'insensitive' };
+    }
+    
+    if (filters?.status) {
+      where.status = filters.status;
+    }
+
     return prisma.project.findMany({
-      where: { userId },
+      where,
       orderBy: { createdAt: 'desc' },
     });
   }
