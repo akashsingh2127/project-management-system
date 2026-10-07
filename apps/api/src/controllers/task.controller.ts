@@ -1,13 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import { TaskService } from '../services/task.service';
-import { CreateTaskDto, UpdateTaskDto } from '@project-management/common';
 import { ApiResponse } from '../responses/ApiResponse';
 
 export class TaskController {
   static async getTasks(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user!.id;
-      const tasks = await TaskService.getTasks(userId);
+      const filters = {
+        name: req.query.name as string | undefined,
+        status: req.query.status as string | undefined,
+        priority: req.query.priority as string | undefined,
+        projectId: req.query.projectId as string | undefined,
+      };
+
+      const tasks = await TaskService.getTasks(userId, filters);
       res.json(ApiResponse.success(tasks));
     } catch (error) {
       next(error);
@@ -17,8 +23,9 @@ export class TaskController {
   static async getTaskById(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user!.id;
-      const taskId = req.params.id;
-      const task = await TaskService.getTaskById(userId, taskId);
+      const { id } = req.params;
+
+      const task = await TaskService.getTaskById(userId, id);
       res.json(ApiResponse.success(task));
     } catch (error) {
       next(error);
@@ -28,8 +35,7 @@ export class TaskController {
   static async createTask(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user!.id;
-      const data: CreateTaskDto = req.body;
-      const task = await TaskService.createTask(userId, data);
+      const task = await TaskService.createTask(userId, req.body);
       res.status(201).json(ApiResponse.success(task));
     } catch (error) {
       next(error);
@@ -39,9 +45,9 @@ export class TaskController {
   static async updateTask(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user!.id;
-      const taskId = req.params.id;
-      const data: UpdateTaskDto = req.body;
-      const task = await TaskService.updateTask(userId, taskId, data);
+      const { id } = req.params;
+
+      const task = await TaskService.updateTask(userId, id, req.body);
       res.json(ApiResponse.success(task));
     } catch (error) {
       next(error);
@@ -51,8 +57,9 @@ export class TaskController {
   static async deleteTask(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user!.id;
-      const taskId = req.params.id;
-      await TaskService.deleteTask(userId, taskId);
+      const { id } = req.params;
+
+      await TaskService.deleteTask(userId, id);
       res.status(204).send();
     } catch (error) {
       next(error);
