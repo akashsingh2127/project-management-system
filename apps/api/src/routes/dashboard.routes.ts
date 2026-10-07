@@ -5,8 +5,9 @@ import { requireOwnership } from '../middlewares/authorize';
 
 const router = Router();
 
+// All dashboard routes require authentication and ownership
 router.use(requireAuth, requireOwnership);
 
-router.get('/', DashboardController.getDashboardMetrics);
+router.get('/', DashboardController.getMetrics);
 
 export { router as dashboardRoutes };

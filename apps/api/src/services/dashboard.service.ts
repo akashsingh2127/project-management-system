@@ -1,30 +1,39 @@
 import { prisma } from '../config/database';
+import { CacheService } from './cache.service';
+import { CacheKeys } from '../constants/cacheKeys';
 
 export class DashboardService {
   static async getDashboardMetrics(userId: string) {
-    const totalProjects = await prisma.project.count({
-      where: { userId },
-    });
+    const cacheKey = CacheKeys.dashboard(userId);
+    const cached = await CacheService.get<any>(cacheKey);
+    if (cached) return cached;
 
-    const projectsInProgress = await prisma.project.count({
-      where: { userId, status: 'IN_PROGRESS' },
-    });
+    // Use Prisma aggregate/count efficiently
+    const [
+      totalProjects,
+      projectsInProgress,
+      totalTasks,
+      completedTasks,
+      pendingTasks
+    ] = await Promise.all([
+      prisma.project.count({ where: { userId } }),
+      prisma.project.count({ where: { userId, status: 'IN_PROGRESS' } }),
+      prisma.task.count({ where: { project: { userId } } }),
+      prisma.task.count({ where: { project: { userId }, status: 'COMPLETED' } }),
+      prisma.task.count({ where: { project: { userId }, status: 'PENDING' } })
+    ]);
 
-    const tasks = await prisma.task.findMany({
-      where: { project: { userId } },
-      select: { status: true },
-    });
-
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter((t: { status: string }) => t.status === 'COMPLETED').length;
-    const pendingTasks = tasks.filter((t: { status: string }) => t.status === 'PENDING').length;
-
-    return {
+    const metrics = {
       totalProjects,
       totalTasks,
       completedTasks,
       pendingTasks,
       projectsInProgress,
     };
+
+    // Cache with short TTL (e.g., 5 mins), though we also invalidate proactively
+    await CacheService.set(cacheKey, metrics, 300);
+
+    return metrics;
   }
 }
