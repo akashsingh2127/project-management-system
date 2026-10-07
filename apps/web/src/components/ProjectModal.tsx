@@ -30,6 +30,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+import { Textarea } from '@/components/ui/textarea';
+
 interface ProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -104,7 +106,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Project Name" {...field} />
+                    <Input placeholder="Project Name" {...field} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -117,7 +119,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Project Description" {...field} value={field.value || ''} />
+                    <Textarea placeholder="Project Description" className="resize-none" {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

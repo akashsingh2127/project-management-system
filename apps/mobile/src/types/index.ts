@@ -17,6 +17,10 @@ export type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
 export interface Task {
   id: string;
   projectId: string;
+  project?: {
+    id: string;
+    name: string;
+  };
   name: string;
   description: string | null;
   priority: TaskPriority;

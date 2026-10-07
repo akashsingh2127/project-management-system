@@ -20,6 +20,11 @@ export function TasksScreen() {
       </View>
       <View className="flex-1">
         <Text className="text-lg font-semibold text-gray-900">{item.name}</Text>
+        {item.project?.name && (
+          <Text className="text-indigo-600 text-xs font-medium mb-1">
+            {item.project.name}
+          </Text>
+        )}
         <Text className="text-gray-500 text-sm mt-1" numberOfLines={1}>
           {item.description || 'No description'}
         </Text>

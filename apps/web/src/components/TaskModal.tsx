@@ -31,15 +31,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+import { Textarea } from '@/components/ui/textarea';
+
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   task?: Task | null;
+  projectId?: string;
 }
 
 type TaskFormValues = z.infer<typeof createTaskSchema>;
 
-export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
+export function TaskModal({ isOpen, onClose, task, projectId }: TaskModalProps) {
   const queryClient = useQueryClient();
 
   const { data: projects } = useQuery<Project[]>({
@@ -57,7 +60,7 @@ export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
       description: '',
       status: 'PENDING',
       priority: 'MEDIUM',
-      projectId: '',
+      projectId: projectId || '',
       dueDate: null as unknown as Date,
     },
   });
@@ -78,11 +81,11 @@ export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
         description: '',
         status: 'PENDING',
         priority: 'MEDIUM',
-        projectId: projects && projects.length > 0 ? projects[0].id : '',
+        projectId: projectId || (projects && projects.length > 0 ? projects[0].id : ''),
         dueDate: null as unknown as Date,
       });
     }
-  }, [task, isOpen, projects, form]);
+  }, [task, isOpen, projects, form, projectId]);
 
   const mutation = useMutation({
     mutationFn: async (data: TaskFormValues) => {
@@ -122,7 +125,7 @@ export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Task Name" {...field} />
+                    <Input placeholder="Task Name" {...field} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -135,7 +138,12 @@ export function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Task Description" {...field} value={field.value || ''} />
+                    <Textarea 
+                      placeholder="Task Description" 
+                      className="resize-none" 
+                      {...field} 
+                      value={field.value || ''} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

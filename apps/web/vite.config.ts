@@ -12,6 +12,14 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['@project-management/common'],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/@project-management\/common/, /node_modules/],
+    },
+  },
   server: {
     port: 5173,
     proxy: {

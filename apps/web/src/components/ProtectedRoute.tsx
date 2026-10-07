@@ -10,7 +10,8 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
+    return <Navigate to={`/?returnTo=${currentPath}`} replace />;
   }
 
   return children;

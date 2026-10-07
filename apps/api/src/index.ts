@@ -1,31 +1,42 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { app } from './app';
 import { logger } from './utils/logger';
-
 import { connectRedis } from './config/redis';
 
 const port = process.env.PORT || 3000;
 
-const server = app.listen(port, async () => {
-  await connectRedis();
-  logger.info(`Server is running on port ${port}`);
-});
+const startServer = async () => {
+  try {
+    // Ensure Redis is connected before initializing the rate limiter (which happens in app.ts)
+    await connectRedis();
 
-// Graceful Shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
-  });
-});
+    const { app } = await import('./app');
 
-process.on('SIGINT', () => {
-  logger.info('SIGINT signal received: closing HTTP server');
-  server.close(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
-  });
-});
+    const server = app.listen(port, () => {
+      logger.info(`Server is running on port ${port}`);
+    });
+
+    // Graceful Shutdown
+    process.on('SIGTERM', () => {
+      logger.info('SIGTERM signal received: closing HTTP server');
+      server.close(() => {
+        logger.info('HTTP server closed');
+        process.exit(0);
+      });
+    });
+
+    process.on('SIGINT', () => {
+      logger.info('SIGINT signal received: closing HTTP server');
+      server.close(() => {
+        logger.info('HTTP server closed');
+        process.exit(0);
+      });
+    });
+  } catch (err) {
+    logger.error({ err }, 'Failed to start server');
+    process.exit(1);
+  }
+};
+
+startServer();

@@ -6,7 +6,12 @@ export const createTaskSchema = z.object({
   description: z.string().optional().nullable(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('MEDIUM'),
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED']).default('PENDING'),
-  dueDate: z.coerce.date().optional().nullable(),
+  dueDate: z.coerce.date().optional().nullable().refine((date) => {
+    if (!date) return true;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date >= today;
+  }, { message: "Due date cannot be in the past" }),
 });
 
 export const updateTaskSchema = z.object({
