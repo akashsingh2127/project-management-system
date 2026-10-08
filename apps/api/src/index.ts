@@ -13,7 +13,7 @@ const startServer = async () => {
 
     const { app } = await import('./app');
 
-    const server = app.listen(port, () => {
+    const server = app.listen(port as number, '0.0.0.0', () => {
       logger.info(`Server is running on port ${port}`);
     });
 
