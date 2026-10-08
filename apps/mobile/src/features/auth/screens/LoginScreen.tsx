@@ -14,7 +14,7 @@ export function LoginScreen() {
     try {
       await authorize({
         audience: process.env.EXPO_PUBLIC_AUTH0_AUDIENCE,
-        scope: 'openid profile email offline_access',
+        scope: 'openid profile email',
       });
     } catch (e: any) {
       console.error(e);
@@ -24,17 +24,19 @@ export function LoginScreen() {
     }
   };
 
+  console.log('LoginScreen rendering');
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" style={{ flex: 1, backgroundColor: 'white' }}>
       {/* Abstract Background Elements */}
       <View className="absolute top-0 w-full h-full overflow-hidden">
         <View className="absolute -top-32 -right-32 w-96 h-96 bg-indigo-50 rounded-full opacity-50" />
         <View className="absolute -bottom-32 -left-32 w-80 h-80 bg-blue-50 rounded-full opacity-50" />
       </View>
 
-      <View className="flex-1 justify-between p-8">
+      <View className="flex-1 justify-between p-8" style={{ flex: 1, justifyContent: 'space-between', padding: 32 }}>
         {/* Top spacing */}
-        <View className="mt-12" />
+        <View className="mt-12" style={{ marginTop: 48 }} />
 
         {/* Logo and Typography */}
         <View className="items-center z-10">
@@ -44,11 +46,11 @@ export function LoginScreen() {
             </View>
           </View>
           
-          <Text className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">
-            Sync<Text className="text-indigo-600">Pro</Text>
+          <Text className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight" style={{ fontSize: 36, fontWeight: '900', color: '#111827', marginBottom: 12 }}>
+            Sync<Text className="text-indigo-600" style={{ color: '#4f46e5' }}>Pro</Text>
           </Text>
           
-          <Text className="text-lg text-gray-500 text-center leading-relaxed px-4">
+          <Text className="text-lg text-gray-500 text-center leading-relaxed px-4" style={{ fontSize: 18, color: '#6b7280', textAlign: 'center' }}>
             Manage projects, organize tasks, and collaborate with your team in real-time.
           </Text>
         </View>

@@ -9,6 +9,9 @@ import { ProjectsScreen } from '../features/projects/screens/ProjectsScreen';
 import { TasksScreen } from '../features/tasks/screens/TasksScreen';
 import { CreateProjectScreen } from '../features/projects/screens/CreateProjectScreen';
 
+import { ProjectDetailsScreen } from '../features/projects/screens/ProjectDetailsScreen';
+import { CreateTaskScreen } from '../features/tasks/screens/CreateTaskScreen';
+
 export type AppTabParamList = {
   Dashboard: undefined;
   ProjectsTab: undefined;
@@ -18,6 +21,8 @@ export type AppTabParamList = {
 export type AppStackParamList = {
   MainTabs: undefined;
   CreateProject: undefined;
+  ProjectDetails: { project: any };
+  CreateTask: { projectId?: string };
 };
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
@@ -78,6 +83,8 @@ export function AppNavigator() {
     <Stack.Navigator>
       <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} />
       <Stack.Screen name="CreateProject" component={CreateProjectScreen} options={{ title: 'New Project', presentation: 'modal' }} />
+      <Stack.Screen name="ProjectDetails" component={ProjectDetailsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CreateTask" component={CreateTaskScreen} options={{ headerShown: false, presentation: 'modal' }} />
     </Stack.Navigator>
   );
 }

@@ -29,6 +29,14 @@
           "domain": "project-management-system.us.auth0.com"
         }
       ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "ndkVersion": "26.1.10909125"
+          }
+        }
+      ],
       "expo-secure-store"
     ]
   }

@@ -40,12 +40,15 @@ const AuthHandler = ({ children }: { children: React.ReactNode }) => {
   }, [user, isLoading, getCredentials]);
 
   if (isLoading || isInitializing) {
+    console.log('AuthHandler loading state:', { isLoading, isInitializing, user: !!user });
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white" style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
+
+  console.log('AuthHandler loaded successfully');
 
   return <>{children}</>;
 };

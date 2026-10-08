@@ -1,12 +1,19 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, SafeAreaView, RefreshControl } from 'react-native';
 import { useAuth0 } from 'react-native-auth0';
+import { useFocusEffect } from '@react-navigation/native';
 import { useDashboardMetrics } from '../api/useDashboardMetrics';
-import { FolderGit2, CheckCircle2, Clock, AlertCircle, LogOut } from 'lucide-react-native';
+import { FolderGit2, CheckCircle2, Clock, LogOut } from 'lucide-react-native';
 
 export function DashboardScreen() {
   const { user, clearSession } = useAuth0();
   const { data: metrics, isLoading, isError, refetch, isRefetching } = useDashboardMetrics();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const handleLogout = async () => {
     try {
@@ -61,34 +68,34 @@ export function DashboardScreen() {
                   <FolderGit2 size={20} color="#4F46E5" />
                 </View>
                 <Text className="text-3xl font-bold text-gray-900 mb-1">{metrics?.totalProjects || 0}</Text>
-                <Text className="text-gray-500 text-sm font-medium">Total Projects</Text>
+                <Text className="text-gray-500 text-sm font-medium">Projects</Text>
               </View>
               
-              {/* Active Projects */}
+              {/* Total Tasks */}
               <View className="w-[48%] bg-white p-5 rounded-2xl shadow-sm mb-4 border border-gray-100/80">
                 <View className="bg-emerald-50 w-10 h-10 rounded-full items-center justify-center mb-3">
                   <CheckCircle2 size={20} color="#10B981" />
                 </View>
-                <Text className="text-3xl font-bold text-gray-900 mb-1">{metrics?.activeProjects || 0}</Text>
-                <Text className="text-gray-500 text-sm font-medium">Active Projects</Text>
+                <Text className="text-3xl font-bold text-gray-900 mb-1">{metrics?.totalTasks || 0}</Text>
+                <Text className="text-gray-500 text-sm font-medium">Total Tasks</Text>
               </View>
 
-              {/* Pending Tasks */}
+              {/* In Progress / Pending Tasks */}
               <View className="w-[48%] bg-white p-5 rounded-2xl shadow-sm mb-4 border border-gray-100/80">
                 <View className="bg-amber-50 w-10 h-10 rounded-full items-center justify-center mb-3">
                   <Clock size={20} color="#F59E0B" />
                 </View>
                 <Text className="text-3xl font-bold text-gray-900 mb-1">{metrics?.pendingTasks || 0}</Text>
-                <Text className="text-gray-500 text-sm font-medium">Pending Tasks</Text>
+                <Text className="text-gray-500 text-sm font-medium">In Progress</Text>
               </View>
 
-              {/* Overdue Tasks */}
+              {/* Completed Tasks */}
               <View className="w-[48%] bg-white p-5 rounded-2xl shadow-sm mb-4 border border-gray-100/80">
-                <View className="bg-red-50 w-10 h-10 rounded-full items-center justify-center mb-3">
-                  <AlertCircle size={20} color="#EF4444" />
+                <View className="bg-emerald-50 w-10 h-10 rounded-full items-center justify-center mb-3">
+                  <CheckCircle2 size={20} color="#10B981" />
                 </View>
-                <Text className="text-3xl font-bold text-gray-900 mb-1">{metrics?.overdueTasks || 0}</Text>
-                <Text className="text-gray-500 text-sm font-medium">Overdue Tasks</Text>
+                <Text className="text-3xl font-bold text-gray-900 mb-1">{metrics?.completedTasks || 0}</Text>
+                <Text className="text-gray-500 text-sm font-medium">Completed</Text>
               </View>
             </View>
           )}

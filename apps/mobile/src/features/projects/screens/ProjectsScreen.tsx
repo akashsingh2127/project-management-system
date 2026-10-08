@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useProjects } from '../api/useProjects';
 import { Project } from '../../../types';
 import { FolderGit2, Plus, ChevronRight, LayoutList } from 'lucide-react-native';
@@ -9,6 +9,12 @@ export function ProjectsScreen() {
   const navigation = useNavigation<any>();
   const [page, setPage] = useState(1);
   const { data, isLoading, isError, refetch, isRefetching } = useProjects(page, 20);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -22,7 +28,9 @@ export function ProjectsScreen() {
     const statusColors = getStatusColor(item.status);
     
     return (
-      <View 
+      <TouchableOpacity 
+        onPress={() => navigation.navigate('ProjectDetails', { project: item })}
+        activeOpacity={0.7}
         className="bg-white p-5 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-row items-center"
       >
         <View className="bg-indigo-50/50 p-3.5 rounded-xl border border-indigo-100 mr-4">
@@ -41,7 +49,8 @@ export function ProjectsScreen() {
             </View>
           </View>
         </View>
-      </View>
+        <ChevronRight color="#CBD5E1" size={24} className="ml-2" />
+      </TouchableOpacity>
     );
   };
 

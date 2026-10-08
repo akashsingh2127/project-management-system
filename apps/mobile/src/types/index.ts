@@ -32,10 +32,8 @@ export interface Task {
 
 export interface DashboardMetrics {
   totalProjects: number;
-  activeProjects: number;
-  completedProjects: number;
   totalTasks: number;
-  pendingTasks: number;
   completedTasks: number;
-  overdueTasks: number;
+  pendingTasks: number;
+  projectsInProgress: number;
 }

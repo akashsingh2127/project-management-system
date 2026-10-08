@@ -1,14 +1,16 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, SafeAreaView, TouchableOpacity } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useTasks, useUpdateTask } from '../api/useTasks';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, SafeAreaView, RefreshControl } from 'react-native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
+import { ChevronLeft, Plus, CheckCircle2, Circle, CheckSquare } from 'lucide-react-native';
+import { useTasks, useUpdateTask } from '../../tasks/api/useTasks';
 import { Task } from '../../../types';
-import { CheckCircle2, Circle, Clock, CheckSquare, FolderOpen, Plus } from 'lucide-react-native';
 
-export function TasksScreen() {
+export function ProjectDetailsScreen() {
+  const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const [page, setPage] = useState(1);
-  const { data, isLoading, isError, refetch, isRefetching } = useTasks(undefined, page, 20);
+  const { project } = route.params;
+  
+  const { data, isLoading, refetch, isRefetching } = useTasks(project.id, 1, 20);
   const updateTask = useUpdateTask();
 
   useFocusEffect(
@@ -30,7 +32,7 @@ export function TasksScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: Task }) => {
+  const renderTask = ({ item }: { item: Task }) => {
     const priorityColors = getPriorityColor(item.priority);
     const isCompleted = item.status === 'COMPLETED';
     
@@ -73,25 +75,6 @@ export function TasksScreen() {
                 </Text>
               </View>
             </View>
-            
-            <View className="flex-row flex-wrap items-center gap-4 mt-4 pt-3 border-t border-gray-50">
-              {item.project?.name && (
-                <View className="flex-row items-center">
-                  <FolderOpen size={14} color="#64748B" />
-                  <Text className="text-gray-500 text-xs font-medium ml-1.5">
-                    {item.project.name}
-                  </Text>
-                </View>
-              )}
-              {item.dueDate && (
-                <View className="flex-row items-center">
-                  <Clock size={14} color={!isCompleted && new Date(item.dueDate) < new Date() ? '#EF4444' : '#64748B'} />
-                  <Text className={`text-xs font-medium ml-1.5 ${!isCompleted && new Date(item.dueDate) < new Date() ? 'text-red-500' : 'text-gray-500'}`}>
-                    {new Date(item.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                  </Text>
-                </View>
-              )}
-            </View>
           </View>
         </View>
       </View>
@@ -100,47 +83,41 @@ export function TasksScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#F8FAFC]">
-      <View className="px-6 py-4 bg-white border-b border-gray-100 shadow-sm flex-row justify-between items-center z-10">
-        <View>
-          <Text className="text-2xl font-bold text-gray-900">Tasks</Text>
-          <Text className="text-sm text-gray-500 font-medium">All cross-project tasks</Text>
+      <View className="px-4 py-4 bg-white border-b border-gray-100 shadow-sm flex-row items-center z-10">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-2">
+          <ChevronLeft color="#0F172A" size={24} />
+        </TouchableOpacity>
+        <View className="flex-1">
+          <Text className="text-xl font-bold text-gray-900" numberOfLines={1}>{project.name}</Text>
+          <Text className="text-sm text-gray-500 font-medium">Project Details</Text>
         </View>
       </View>
 
       <FlatList
         data={data?.data || []}
         keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-        }
+        renderItem={renderTask}
+        contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         ListEmptyComponent={
-          isLoading && !data ? (
+          isLoading ? (
             <View className="py-20 items-center">
               <ActivityIndicator size="large" color="#0F172A" />
-            </View>
-          ) : isError ? (
-            <View className="py-20 items-center">
-              <Text className="text-red-500 text-base font-medium mb-2">Failed to load tasks</Text>
-              <TouchableOpacity onPress={() => refetch()} className="bg-red-50 px-4 py-2 rounded-lg border border-red-100">
-                <Text className="text-red-600 font-semibold">Try Again</Text>
-              </TouchableOpacity>
             </View>
           ) : (
             <View className="items-center justify-center py-20 px-6">
               <View className="bg-gray-100 w-20 h-20 rounded-full items-center justify-center mb-6">
                 <CheckSquare size={32} color="#94A3B8" />
               </View>
-              <Text className="text-xl font-bold text-gray-900 mb-2">No tasks found</Text>
-              <Text className="text-gray-500 text-center mb-8">You don't have any tasks across your projects yet.</Text>
+              <Text className="text-xl font-bold text-gray-900 mb-2">No tasks yet</Text>
+              <Text className="text-gray-500 text-center mb-8">This project doesn't have any tasks.</Text>
             </View>
           )
         }
       />
       
       <TouchableOpacity
-        onPress={() => navigation.navigate('CreateTask')}
+        onPress={() => navigation.navigate('CreateTask', { projectId: project.id })}
         className="absolute bottom-8 right-6 bg-indigo-600 w-14 h-14 rounded-full items-center justify-center shadow-xl shadow-indigo-600/30"
         activeOpacity={0.8}
       >
