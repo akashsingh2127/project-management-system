@@ -1,15 +1,16 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, SafeAreaView, TextInput, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useProjects } from '../api/useProjects';
+import { useProjects, useDeleteProject } from '../api/useProjects';
 import { Project } from '../../../types';
-import { FolderGit2, Plus, ChevronRight, LayoutList, Search } from 'lucide-react-native';
+import { FolderGit2, Plus, ChevronRight, LayoutList, Search, Trash2 } from 'lucide-react-native';
 
 export function ProjectsScreen() {
   const navigation = useNavigation<any>();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const { data, isLoading, isError, refetch, isRefetching } = useProjects(page, 20, search);
+  const deleteProject = useDeleteProject();
 
   useFocusEffect(
     useCallback(() => {
@@ -23,6 +24,21 @@ export function ProjectsScreen() {
       case 'IN_PROGRESS': return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100' };
       default: return { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' };
     }
+  };
+
+  const handleDeleteProject = (project: Project) => {
+    Alert.alert(
+      'Delete Project',
+      `Are you sure you want to delete "${project.name}"? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: () => deleteProject.mutate(project.id)
+        }
+      ]
+    );
   };
 
   const renderItem = ({ item }: { item: Project }) => {
@@ -50,7 +66,13 @@ export function ProjectsScreen() {
             </View>
           </View>
         </View>
-        <ChevronRight color="#CBD5E1" size={24} className="ml-2" />
+        <TouchableOpacity 
+          onPress={() => handleDeleteProject(item)}
+          disabled={deleteProject.isPending}
+          className="p-2 ml-2"
+        >
+          <Trash2 color="#EF4444" size={20} />
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   };

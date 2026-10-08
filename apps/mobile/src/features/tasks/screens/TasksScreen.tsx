@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl, SafeAreaView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useTasks, useUpdateTask } from '../api/useTasks';
+import { useTasks, useUpdateTask, useDeleteTask } from '../api/useTasks';
 import { Task } from '../../../types';
-import { CheckCircle2, Circle, Clock, CheckSquare, FolderOpen, Plus, Search } from 'lucide-react-native';
+import { CheckCircle2, Circle, Clock, CheckSquare, FolderOpen, Plus, Search, Trash2 } from 'lucide-react-native';
 
 export function TasksScreen() {
   const navigation = useNavigation<any>();
@@ -11,6 +11,7 @@ export function TasksScreen() {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError, refetch, isRefetching } = useTasks(undefined, page, 20, search);
   const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
 
   useFocusEffect(
     useCallback(() => {
@@ -21,6 +22,21 @@ export function TasksScreen() {
   const toggleTaskStatus = (task: Task) => {
     const newStatus = task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
     updateTask.mutate({ id: task.id, data: { status: newStatus } });
+  };
+
+  const handleDeleteTask = (task: Task) => {
+    Alert.alert(
+      'Delete Task',
+      `Are you sure you want to delete "${task.name || (task as any).title}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: () => deleteTask.mutate(task.id)
+        }
+      ]
+    );
   };
 
   const getPriorityColor = (priority: string) => {
@@ -50,9 +66,18 @@ export function TasksScreen() {
             )}
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className={`text-lg font-bold mb-1 ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-              {item.name || (item as any).title}
-            </Text>
+            <View className="flex-row justify-between items-start">
+              <Text className={`flex-1 text-lg font-bold mb-1 mr-2 ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                {item.name || (item as any).title}
+              </Text>
+              <TouchableOpacity 
+                onPress={() => handleDeleteTask(item)}
+                disabled={deleteTask.isPending}
+                className="p-1"
+              >
+                <Trash2 color="#EF4444" size={20} />
+              </TouchableOpacity>
+            </View>
             {item.description ? (
               <Text className="text-gray-500 text-sm mb-3 line-clamp-2 leading-relaxed" numberOfLines={2}>
                 {item.description}

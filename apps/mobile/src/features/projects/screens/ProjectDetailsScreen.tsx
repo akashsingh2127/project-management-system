@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, SafeAreaView, RefreshControl } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, SafeAreaView, RefreshControl, Alert } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { ChevronLeft, Plus, CheckCircle2, Circle, CheckSquare } from 'lucide-react-native';
-import { useTasks, useUpdateTask } from '../../tasks/api/useTasks';
+import { ChevronLeft, Plus, CheckCircle2, Circle, CheckSquare, Trash2 } from 'lucide-react-native';
+import { useTasks, useUpdateTask, useDeleteTask } from '../../tasks/api/useTasks';
+import { useDeleteProject } from '../api/useProjects';
 import { Task } from '../../../types';
 
 export function ProjectDetailsScreen() {
@@ -12,6 +13,8 @@ export function ProjectDetailsScreen() {
   
   const { data, isLoading, refetch, isRefetching } = useTasks(project.id, 1, 20);
   const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
+  const deleteProject = useDeleteProject();
 
   useFocusEffect(
     useCallback(() => {
@@ -22,6 +25,40 @@ export function ProjectDetailsScreen() {
   const toggleTaskStatus = (task: Task) => {
     const newStatus = task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
     updateTask.mutate({ id: task.id, data: { status: newStatus } });
+  };
+
+  const handleDeleteTask = (task: Task) => {
+    Alert.alert(
+      'Delete Task',
+      `Are you sure you want to delete "${task.name || (task as any).title}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: () => deleteTask.mutate(task.id)
+        }
+      ]
+    );
+  };
+
+  const handleDeleteProject = () => {
+    Alert.alert(
+      'Delete Project',
+      `Are you sure you want to delete "${project.name}"? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: () => {
+            deleteProject.mutate(project.id, {
+              onSuccess: () => navigation.goBack()
+            });
+          }
+        }
+      ]
+    );
   };
 
   const getPriorityColor = (priority: string) => {
@@ -51,9 +88,18 @@ export function ProjectDetailsScreen() {
             )}
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className={`text-lg font-bold mb-1 ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-              {item.name || (item as any).title}
-            </Text>
+            <View className="flex-row justify-between items-start">
+              <Text className={`flex-1 text-lg font-bold mb-1 mr-2 ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                {item.name || (item as any).title}
+              </Text>
+              <TouchableOpacity 
+                onPress={() => handleDeleteTask(item)}
+                disabled={deleteTask.isPending}
+                className="p-1"
+              >
+                <Trash2 color="#EF4444" size={20} />
+              </TouchableOpacity>
+            </View>
             {item.description ? (
               <Text className="text-gray-500 text-sm mb-3 line-clamp-2 leading-relaxed" numberOfLines={2}>
                 {item.description}
@@ -91,6 +137,13 @@ export function ProjectDetailsScreen() {
           <Text className="text-xl font-bold text-gray-900" numberOfLines={1}>{project.name}</Text>
           <Text className="text-sm text-gray-500 font-medium">Project Details</Text>
         </View>
+        <TouchableOpacity 
+          onPress={handleDeleteProject}
+          disabled={deleteProject.isPending}
+          className="p-2"
+        >
+          <Trash2 color="#EF4444" size={24} />
+        </TouchableOpacity>
       </View>
 
       <FlatList
