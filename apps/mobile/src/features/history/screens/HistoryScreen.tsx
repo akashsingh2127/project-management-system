@@ -1,15 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, ActivityIndicator, RefreshControl, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useTasks, useUpdateTask } from '../api/useTasks';
+import { useTasks, useUpdateTask } from '../../tasks/api/useTasks';
 import { Task } from '../../../types';
-import { CheckCircle2, Circle, Clock, CheckSquare, FolderOpen, Plus, Search } from 'lucide-react-native';
+import { CheckCircle2, Circle, Clock, History as HistoryIcon, FolderOpen, Search } from 'lucide-react-native';
 
-export function TasksScreen() {
-  const navigation = useNavigation<any>();
+export function HistoryScreen() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError, refetch, isRefetching } = useTasks(undefined, page, 20, search);
+  const { data, isLoading, isError, refetch, isRefetching } = useTasks(undefined, page, 20, search, 'COMPLETED');
   const updateTask = useUpdateTask();
 
   useFocusEffect(
@@ -103,8 +102,8 @@ export function TasksScreen() {
     <SafeAreaView className="flex-1 bg-[#F8FAFC]">
       <View className="px-6 py-4 bg-white border-b border-gray-100 shadow-sm flex-row justify-between items-center z-10">
         <View>
-          <Text className="text-2xl font-bold text-gray-900">Tasks</Text>
-          <Text className="text-sm text-gray-500 font-medium">All cross-project tasks</Text>
+          <Text className="text-2xl font-bold text-gray-900">History</Text>
+          <Text className="text-sm text-gray-500 font-medium">Review your completed tasks and past achievements.</Text>
         </View>
       </View>
 
@@ -113,7 +112,7 @@ export function TasksScreen() {
           <Search color="#94A3B8" size={20} />
           <TextInput
             className="flex-1 ml-2 text-base text-gray-900"
-            placeholder="Search tasks..."
+            placeholder="Search completed tasks..."
             placeholderTextColor="#94A3B8"
             value={search}
             onChangeText={setSearch}
@@ -136,7 +135,7 @@ export function TasksScreen() {
             </View>
           ) : isError ? (
             <View className="py-20 items-center">
-              <Text className="text-red-500 text-base font-medium mb-2">Failed to load tasks</Text>
+              <Text className="text-red-500 text-base font-medium mb-2">Failed to load history</Text>
               <TouchableOpacity onPress={() => refetch()} className="bg-red-50 px-4 py-2 rounded-lg border border-red-100">
                 <Text className="text-red-600 font-semibold">Try Again</Text>
               </TouchableOpacity>
@@ -144,22 +143,14 @@ export function TasksScreen() {
           ) : (
             <View className="items-center justify-center py-20 px-6">
               <View className="bg-gray-100 w-20 h-20 rounded-full items-center justify-center mb-6">
-                <CheckSquare size={32} color="#94A3B8" />
+                <HistoryIcon size={32} color="#94A3B8" />
               </View>
-              <Text className="text-xl font-bold text-gray-900 mb-2">No tasks found</Text>
-              <Text className="text-gray-500 text-center mb-8">You don't have any tasks across your projects yet.</Text>
+              <Text className="text-xl font-bold text-gray-900 mb-2">No history found</Text>
+              <Text className="text-gray-500 text-center mb-8">You haven't completed any tasks yet.</Text>
             </View>
           )
         }
       />
-      
-      <TouchableOpacity
-        onPress={() => navigation.navigate('CreateTask')}
-        className="absolute bottom-8 right-6 bg-indigo-600 w-14 h-14 rounded-full items-center justify-center shadow-xl shadow-indigo-600/30"
-        activeOpacity={0.8}
-      >
-        <Plus color="white" size={28} />
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }

@@ -21,7 +21,10 @@
       "package": "com.projectmanagement.mobile",
       "predictiveBackGestureEnabled": false
     },
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "plugins": [
       [
         "react-native-auth0",
@@ -37,7 +40,8 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "@react-native-community/datetimepicker"
     ]
   }
 }

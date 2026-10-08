@@ -1,12 +1,13 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Home, FolderGit2, CheckSquare } from 'lucide-react-native';
+import { Home, FolderGit2, CheckSquare, History } from 'lucide-react-native';
 
 import { DashboardScreen } from '../features/dashboard/screens/DashboardScreen';
 
 import { ProjectsScreen } from '../features/projects/screens/ProjectsScreen';
 import { TasksScreen } from '../features/tasks/screens/TasksScreen';
+import { HistoryScreen } from '../features/history/screens/HistoryScreen';
 import { CreateProjectScreen } from '../features/projects/screens/CreateProjectScreen';
 
 import { ProjectDetailsScreen } from '../features/projects/screens/ProjectDetailsScreen';
@@ -16,6 +17,7 @@ export type AppTabParamList = {
   Dashboard: undefined;
   ProjectsTab: undefined;
   TasksTab: undefined;
+  HistoryTab: undefined;
 };
 
 export type AppStackParamList = {
@@ -72,6 +74,14 @@ function TabNavigator() {
         options={{
           title: 'Tasks',
           tabBarIcon: ({ color, size }) => <CheckSquare color={color} size={size} />,
+        }}
+      />
+      <Tab.Screen
+        name="HistoryTab"
+        component={HistoryScreen}
+        options={{
+          title: 'History',
+          tabBarIcon: ({ color, size }) => <History color={color} size={size} />,
         }}
       />
     </Tab.Navigator>

@@ -3,17 +3,32 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, SafeAreaVi
 import { useAuth0 } from 'react-native-auth0';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDashboardMetrics } from '../api/useDashboardMetrics';
-import { FolderGit2, CheckCircle2, Clock, LogOut } from 'lucide-react-native';
+import { useTasks, useUpdateTask } from '../../tasks/api/useTasks';
+import { useProjects } from '../../projects/api/useProjects';
+import { FolderGit2, CheckCircle2, Clock, LogOut, ChevronRight, Circle } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export function DashboardScreen() {
   const { user, clearSession } = useAuth0();
+  const navigation = useNavigation<any>();
   const { data: metrics, isLoading, isError, refetch, isRefetching } = useDashboardMetrics();
+  
+  const { data: recentProjects, refetch: refetchProjects } = useProjects(1, 5);
+  const { data: upcomingTasks, refetch: refetchTasks } = useTasks(undefined, 1, 5, undefined, 'PENDING');
+  const updateTask = useUpdateTask();
 
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [refetch])
+      refetchProjects();
+      refetchTasks();
+    }, [refetch, refetchProjects, refetchTasks])
   );
+
+  const toggleTaskStatus = (task: any) => {
+    const newStatus = task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+    updateTask.mutate({ id: task.id, data: { status: newStatus } });
+  };
 
   const handleLogout = async () => {
     try {
@@ -99,6 +114,81 @@ export function DashboardScreen() {
               </View>
             </View>
           )}
+          
+          {/* Recent Projects Section */}
+          <View className="mt-6 mb-4 flex-row justify-between items-center">
+            <Text className="text-lg font-bold text-gray-900">Recent Projects</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('ProjectsTab')}>
+              <Text className="text-indigo-600 font-medium">View All</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {recentProjects?.data?.map((project: any) => (
+            <TouchableOpacity 
+              key={project.id}
+              className="bg-white p-4 rounded-xl shadow-sm mb-3 border border-gray-100/80 flex-row items-center justify-between"
+              onPress={() => navigation.navigate('ProjectDetails', { project })}
+            >
+              <View className="flex-row items-center flex-1">
+                <View className="bg-indigo-50 w-10 h-10 rounded-lg items-center justify-center mr-3">
+                  <FolderGit2 size={20} color="#4F46E5" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-bold text-gray-900 mb-0.5">{project.name}</Text>
+                  <Text className="text-gray-500 text-xs">
+                    {project.status === 'COMPLETED' ? 'Completed' : 'In Progress'}
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight color="#CBD5E1" size={20} />
+            </TouchableOpacity>
+          ))}
+          {(!recentProjects?.data || recentProjects.data.length === 0) && (
+             <Text className="text-gray-500 text-center py-4 bg-white rounded-xl border border-gray-100">No recent projects found</Text>
+          )}
+
+          {/* Upcoming Tasks Section */}
+          <View className="mt-8 mb-4 flex-row justify-between items-center">
+            <Text className="text-lg font-bold text-gray-900">Upcoming Tasks</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('TasksTab')}>
+              <Text className="text-indigo-600 font-medium">View All</Text>
+            </TouchableOpacity>
+          </View>
+
+          {upcomingTasks?.data?.map((task: any) => {
+             const isCompleted = task.status === 'COMPLETED';
+             return (
+              <View 
+                key={task.id}
+                className="bg-white p-4 rounded-xl shadow-sm mb-3 border border-gray-100/80 flex-row items-center"
+              >
+                <TouchableOpacity 
+                  className="mr-3"
+                  onPress={() => toggleTaskStatus(task)}
+                >
+                  {isCompleted ? (
+                    <CheckCircle2 color="#10B981" size={24} />
+                  ) : (
+                    <Circle color="#94A3B8" size={24} />
+                  )}
+                </TouchableOpacity>
+                <View className="flex-1">
+                  <Text className={`text-base font-bold mb-0.5 ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                    {task.name || task.title}
+                  </Text>
+                  {task.project?.name && (
+                    <Text className="text-gray-500 text-xs">{task.project.name}</Text>
+                  )}
+                </View>
+              </View>
+             );
+          })}
+          {(!upcomingTasks?.data || upcomingTasks.data.length === 0) && (
+             <Text className="text-gray-500 text-center py-4 bg-white rounded-xl border border-gray-100">No upcoming tasks</Text>
+          )}
+          
+          <View className="h-10" />
+
         </View>
       </ScrollView>
     </SafeAreaView>

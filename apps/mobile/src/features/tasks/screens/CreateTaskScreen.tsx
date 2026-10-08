@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, ScrollView, Modal, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, ScrollView, Modal, FlatList, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ChevronLeft, Save, X, Calendar, ChevronDown } from 'lucide-react-native';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import api from '../../../lib/axios';
 import { Project } from '../../../types';
 
@@ -17,7 +18,8 @@ export function CreateTaskScreen() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(initialProjectId);
   const [status, setStatus] = useState<'PENDING' | 'IN_PROGRESS' | 'COMPLETED'>('PENDING');
   const [priority, setPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH'>('MEDIUM');
-  const [dueDate, setDueDate] = useState('');
+  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [isProjectPickerVisible, setIsProjectPickerVisible] = useState(false);
 
   // Fetch projects for the picker
@@ -51,24 +53,15 @@ export function CreateTaskScreen() {
     }
   });
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDueDate(selectedDate);
+    }
+  };
+
   const handleSave = () => {
     if (!name.trim() || !selectedProjectId) return;
-    
-    // basic date parsing (expects YYYY-MM-DD or similar)
-    let parsedDate;
-    if (dueDate) {
-      const dateParts = dueDate.split('-');
-      if (dateParts.length === 3) {
-        // Assume DD-MM-YYYY if DD is > 12?
-        // To be safe, just pass to new Date or let backend handle.
-        // If user typed 10-10-2026, let's format it to 2026-10-10
-        if (dateParts[2].length === 4) {
-           parsedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-        } else {
-           parsedDate = dueDate;
-        }
-      }
-    }
 
     createTask.mutate({
       name: name.trim(),
@@ -76,7 +69,7 @@ export function CreateTaskScreen() {
       projectId: selectedProjectId,
       status: status,
       priority: priority,
-      ...(parsedDate && { dueDate: parsedDate })
+      ...(dueDate && { dueDate: dueDate.toISOString() })
     });
   };
 
@@ -158,16 +151,24 @@ export function CreateTaskScreen() {
 
         {/* Due Date */}
         <Text className="text-sm font-semibold text-gray-700 mb-2">Due Date</Text>
-        <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-8 flex-row items-center">
+        <TouchableOpacity
+          onPress={() => setShowDatePicker(true)}
+          className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 mb-8 flex-row items-center"
+        >
           <Calendar color="#94A3B8" size={20} className="mr-3" />
-          <TextInput
-            value={dueDate}
-            onChangeText={setDueDate}
-            placeholder="DD-MM-YYYY"
-            className="flex-1 text-gray-900"
-            placeholderTextColor="#94A3B8"
+          <Text className={dueDate ? "text-gray-900" : "text-gray-400"}>
+            {dueDate ? dueDate.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }) : "Select Due Date"}
+          </Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={dueDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
           />
-        </View>
+        )}
 
         {/* Actions */}
         <View className="flex-row justify-between gap-4 mt-2">

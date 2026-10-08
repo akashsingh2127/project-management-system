@@ -1,14 +1,15 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useProjects } from '../api/useProjects';
 import { Project } from '../../../types';
-import { FolderGit2, Plus, ChevronRight, LayoutList } from 'lucide-react-native';
+import { FolderGit2, Plus, ChevronRight, LayoutList, Search } from 'lucide-react-native';
 
 export function ProjectsScreen() {
   const navigation = useNavigation<any>();
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError, refetch, isRefetching } = useProjects(page, 20);
+  const { data, isLoading, isError, refetch, isRefetching } = useProjects(page, 20, search);
 
   useFocusEffect(
     useCallback(() => {
@@ -60,6 +61,19 @@ export function ProjectsScreen() {
         <View>
           <Text className="text-2xl font-bold text-gray-900">Projects</Text>
           <Text className="text-sm text-gray-500 font-medium">Manage your workspaces</Text>
+        </View>
+      </View>
+
+      <View className="px-6 pt-4 bg-[#F8FAFC]">
+        <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-4 py-2.5">
+          <Search color="#94A3B8" size={20} />
+          <TextInput
+            className="flex-1 ml-2 text-base text-gray-900"
+            placeholder="Search projects..."
+            placeholderTextColor="#94A3B8"
+            value={search}
+            onChangeText={setSearch}
+          />
         </View>
       </View>
 
