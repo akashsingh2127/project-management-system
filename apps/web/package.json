@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
+    "prebuild": "npm run build --workspace=@project-management/common",
     "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

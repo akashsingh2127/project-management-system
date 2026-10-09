@@ -10,7 +10,7 @@ import { Card, CardContent } from '../components/ui/card';
 
 export interface Task {
   id: string;
-  title: string;
+  name: string;
   description: string | null;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -37,7 +37,7 @@ export default function History() {
       return {
         tasks: (res.data.data.tasks || res.data.data || []).map((t: any) => ({
           ...t,
-          title: t.title || t.name,
+          name: t.name,
         })) as Task[],
         meta: res.data.meta as { total: number; page: number; limit: number; totalPages: number }
       };
@@ -60,7 +60,7 @@ export default function History() {
   };
 
   const filteredTasks = tasks?.filter((task) => 
-    task.title.toLowerCase().includes(searchTerm.toLowerCase())
+    task.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -132,7 +132,7 @@ export default function History() {
                     </div>
                     <div className="flex-1 min-w-0 pr-4">
                       <h3 className="text-sm font-medium truncate text-muted-foreground line-through">
-                        {task.title}
+                        {task.name}
                       </h3>
                       {task.description && (
                         <p className="text-sm text-muted-foreground truncate mt-0.5 line-clamp-1 opacity-70">{task.description}</p>

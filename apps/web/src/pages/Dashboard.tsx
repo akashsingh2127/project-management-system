@@ -7,8 +7,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardFooter
+  CardDescription
 } from '../components/ui/card';
 import { Skeleton } from '../components/ui/skeleton';
 
@@ -213,7 +212,7 @@ export default function Dashboard() {
                         <Circle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                       )}
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
+                        <p className="text-sm font-medium text-foreground truncate">{task.name}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`text-xs font-medium px-1.5 py-0.5 rounded-sm ${
                             task.priority === 'HIGH' ? 'bg-destructive/10 text-destructive' :

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
-import { ArrowLeft, Plus, CheckCircle, Clock, Search, Edit2, Trash2, CheckSquare, MoreVertical, Circle } from 'lucide-react';
+import { ArrowLeft, Plus, CheckCircle, Clock, Search, Edit2, Trash2, CheckSquare, Circle } from 'lucide-react';
 import { TaskModal } from '../components/TaskModal';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -12,7 +12,7 @@ import { Card, CardContent } from '../components/ui/card';
 
 interface Task {
   id: string;
-  title: string;
+  name: string;
   description: string | null;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -49,7 +49,6 @@ export default function ProjectDetails() {
     queryKey: ['tasks', { projectId: id }],
     queryFn: async () => {
       const res = await api.get(`/tasks?projectId=${id}&limit=100`);
-      // Use tasks mapping to match 'name'/'title' difference between DB and interface
       const rawTasks = res.data.data.tasks || res.data.data || [];
       return rawTasks as Task[];
     },
@@ -99,8 +98,7 @@ export default function ProjectDetails() {
   if (!project) return <div className="p-8 text-center text-destructive">Project not found.</div>;
 
   const filteredTasks = tasksData?.filter((task) => {
-    const title = task.title || (task as any).name || '';
-    const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = task.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || task.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -185,7 +183,7 @@ export default function ProjectDetails() {
           ) : (
             <div className="divide-y divide-border">
               {filteredTasks.map((task) => {
-                const title = task.title || (task as any).name;
+                const name = task.name;
                 return (
                   <div 
                     key={task.id} 
@@ -205,7 +203,7 @@ export default function ProjectDetails() {
                       </button>
                       <div className="flex-1 min-w-0 pr-4">
                         <h3 className={`text-sm font-medium truncate transition-colors ${task.status === 'COMPLETED' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-                          {title}
+                          {name}
                         </h3>
                         {task.description && (
                           <p className="text-sm text-muted-foreground truncate mt-0.5 line-clamp-1">{task.description}</p>

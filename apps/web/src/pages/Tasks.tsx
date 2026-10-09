@@ -6,13 +6,12 @@ import { Search, Edit2, Trash2, Plus, CheckCircle, Circle, Clock, CheckSquare, F
 import { TaskModal } from '../components/TaskModal';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Badge } from '../components/ui/badge';
 import { Skeleton } from '../components/ui/skeleton';
 import { Card, CardContent } from '../components/ui/card';
 
 export interface Task {
   id: string;
-  title: string;
+  name: string;
   description: string | null;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -44,7 +43,7 @@ export default function Tasks() {
         // Map backend tasks array and ensure title field mapping
         tasks: (res.data.data.tasks || res.data.data || []).map((t: any) => ({
           ...t,
-          title: t.title || t.name,
+          name: t.name,
         })) as Task[],
         meta: res.data.meta as { total: number; page: number; limit: number; totalPages: number }
       };
@@ -81,7 +80,7 @@ export default function Tasks() {
   };
 
   const filteredTasks = tasks?.filter((task) => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = task.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || task.status === statusFilter;
     const matchesPriority = priorityFilter === 'ALL' || task.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
@@ -194,7 +193,7 @@ export default function Tasks() {
                     </button>
                     <div className="flex-1 min-w-0 pr-4">
                       <h3 className={`text-sm font-medium truncate transition-colors ${task.status === 'COMPLETED' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-                        {task.title}
+                        {task.name}
                       </h3>
                       {task.description && (
                         <p className="text-sm text-muted-foreground truncate mt-0.5 line-clamp-1">{task.description}</p>
