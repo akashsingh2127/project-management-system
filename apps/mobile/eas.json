@@ -10,7 +10,8 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "http://10.0.2.2:3000/api",
         "EXPO_PUBLIC_AUTH0_DOMAIN": "project-management-system.us.auth0.com",
-        "EXPO_PUBLIC_AUTH0_CLIENT_ID": "DRdsqz8r4LeT2V24OHOBrjnwljOQoPWN"
+        "EXPO_PUBLIC_AUTH0_CLIENT_ID": "WvgWSWtGObRNWWxUHHJdnM30oBVrtuBB",
+        "EXPO_PUBLIC_AUTH0_AUDIENCE": "https://project-management-api"
       }
     },
     "preview": {
@@ -21,7 +22,8 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "https://pms-api-v7p7.onrender.com/api",
         "EXPO_PUBLIC_AUTH0_DOMAIN": "project-management-system.us.auth0.com",
-        "EXPO_PUBLIC_AUTH0_CLIENT_ID": "DRdsqz8r4LeT2V24OHOBrjnwljOQoPWN"
+        "EXPO_PUBLIC_AUTH0_CLIENT_ID": "WvgWSWtGObRNWWxUHHJdnM30oBVrtuBB",
+        "EXPO_PUBLIC_AUTH0_AUDIENCE": "https://project-management-api"
       }
     },
     "production": {
@@ -29,7 +31,8 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "https://pms-api-v7p7.onrender.com/api",
         "EXPO_PUBLIC_AUTH0_DOMAIN": "project-management-system.us.auth0.com",
-        "EXPO_PUBLIC_AUTH0_CLIENT_ID": "DRdsqz8r4LeT2V24OHOBrjnwljOQoPWN"
+        "EXPO_PUBLIC_AUTH0_CLIENT_ID": "WvgWSWtGObRNWWxUHHJdnM30oBVrtuBB",
+        "EXPO_PUBLIC_AUTH0_AUDIENCE": "https://project-management-api"
       }
     }
   }
