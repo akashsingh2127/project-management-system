@@ -1,0 +1,39 @@
+warning: in the working copy of 'apps/web/package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/apps/web/package.json b/apps/web/package.json[m
+[1mindex 8a0e39d..9463a60 100644[m
+[1m--- a/apps/web/package.json[m
+[1m+++ b/apps/web/package.json[m
+[36m@@ -44,6 +44,7 @@[m
+     "autoprefixer": "^10.6.1",[m
+     "jsdom": "^29.1.1",[m
+     "postcss": "^8.5.29",[m
+[32m+[m[32m    "std-env": "^4.3.0",[m
+     "tailwindcss": "^4.3.3",[m
+     "typescript": "^7.0.2",[m
+     "vite": "^8.3.3",[m
+[1mdiff --git a/package.json b/package.json[m
+[1mindex cf7bb70..f3c7f90 100644[m
+[1m--- a/package.json[m
+[1m+++ b/package.json[m
+[36m@@ -15,10 +15,17 @@[m
+     "clean": "npm run clean --workspaces --if-present"[m
+   },[m
+   "devDependencies": {[m
+[31m-    "typescript": "^5.3.3",[m
+[32m+[m[32m    "@typescript-eslint/eslint-plugin": "^7.1.1",[m
+[32m+[m[32m    "@typescript-eslint/parser": "^7.1.1",[m
+     "eslint": "^8.57.0",[m
+     "prettier": "^3.2.5",[m
+[31m-    "@typescript-eslint/eslint-plugin": "^7.1.1",[m
+[31m-    "@typescript-eslint/parser": "^7.1.1"[m
+[32m+[m[32m    "typescript": "^5.3.3"[m
+[32m+[m[32m  },[m
+[32m+[m[32m  "overrides": {[m
+[32m+[m[32m    "react": "19.2.3",[m
+[32m+[m[32m    "react-dom": "19.2.3"[m
+[32m+[m[32m  },[m
+[32m+[m[32m  "optionalDependencies": {[m
+[32m+[m[32m    "@typescript/typescript-win32-x64": "^7.0.2"[m
+   }[m
+ }[m
