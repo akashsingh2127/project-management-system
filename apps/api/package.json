@@ -4,6 +4,7 @@
   "main": "dist/src/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "prebuild": "npm run build --workspace=@project-management/common",
     "build": "tsc",
     "start": "node dist/src/index.js",
     "test": "jest",
