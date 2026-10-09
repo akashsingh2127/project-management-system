@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import Dashboard from './pages/Dashboard';
@@ -18,7 +18,7 @@ function App() {
   const returnTo = searchParams.get('returnTo') || '/dashboard';
 
   // Provide Axios with a way to fetch the token directly before any request fires
-  useEffect(() => {
+  useMemo(() => {
     setTokenProvider(() => getAccessTokenSilently());
   }, [getAccessTokenSilently]);
 
