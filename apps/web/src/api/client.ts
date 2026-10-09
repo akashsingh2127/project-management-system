@@ -1,7 +1,15 @@
 import axios from 'axios';
 
+let resolvedBaseURL = import.meta.env.VITE_API_URL || '/api';
+if (resolvedBaseURL !== '/api') {
+  resolvedBaseURL = resolvedBaseURL.replace(/\/$/, ''); // remove trailing slash
+  if (!resolvedBaseURL.endsWith('/api')) {
+    resolvedBaseURL = `${resolvedBaseURL}/api`;
+  }
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: resolvedBaseURL,
   headers: {
     'Content-Type': 'application/json',
   },
